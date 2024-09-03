@@ -83,7 +83,7 @@ def test_image_palette_linear_diagonal(tmp_path, caplog):
 
 def test_image_palette_linear_diagonal_mirror(tmp_path, caplog):    
     with caplog.at_level(logging.DEBUG):    
-        b = cb.ColorBackground(palette=cc.b_cyclic_mybm_20_100_c48, transform=cb.MIRROR)
+        b = cb.ColorBackground(palette=cc.b_cyclic_mybm_20_100_c48, transform=cb.Transform.MIRROR)
         b.get_image().save(join(tmp_path, "cyclic_palette_linear_diagonal_mirror.png"))
         assert "Drawing linear diagonal background." in caplog.text
         assert "Flipping background image." not in caplog.text
@@ -91,7 +91,7 @@ def test_image_palette_linear_diagonal_mirror(tmp_path, caplog):
     
 def test_image_palette_linear_diagonal_flip(tmp_path, caplog):    
     with caplog.at_level(logging.DEBUG):    
-        b = cb.ColorBackground(palette=cc.b_cyclic_mybm_20_100_c48, transform=cb.FLIP)
+        b = cb.ColorBackground(palette=cc.b_cyclic_mybm_20_100_c48, transform=cb.Transform.FLIP)
         b.get_image().save(join(tmp_path, "cyclic_palette_linear_diagonal_flip.png"))
         assert "Drawing linear diagonal background." in caplog.text
         assert "Flipping background image." in caplog.text
@@ -99,7 +99,7 @@ def test_image_palette_linear_diagonal_flip(tmp_path, caplog):
     
 def test_image_palette_linear_diagonal_flip_mirror(tmp_path, caplog):
     with caplog.at_level(logging.DEBUG):    
-        b = cb.ColorBackground(palette=cc.b_cyclic_mybm_20_100_c48, transform=cb.FLIP * cb.MIRROR)
+        b = cb.ColorBackground(palette=cc.b_cyclic_mybm_20_100_c48, transform=cb.Transform.FLIPMIRROR)
         b.get_image().save(join(tmp_path, "cyclic_palette_linear_diagonal_flip_mirror.png"))
         assert "Drawing linear diagonal background." in caplog.text
         assert "Flipping background image." in caplog.text
@@ -107,7 +107,7 @@ def test_image_palette_linear_diagonal_flip_mirror(tmp_path, caplog):
     
 def test_image_palette_linear_vertical(tmp_path, caplog):
     with caplog.at_level(logging.DEBUG):
-        b = cb.ColorBackground(palette=cc.b_cyclic_mybm_20_100_c48, direction=cb.VERTICAL)
+        b = cb.ColorBackground(palette=cc.b_cyclic_mybm_20_100_c48, direction=cb.Direction.VERTICAL)
         b.get_image().save(join(tmp_path, "cyclic_palette_linear_vertical.png"))
         assert "Drawing linear vertical background." in caplog.text
         assert "Flipping background image." not in caplog.text
@@ -115,7 +115,7 @@ def test_image_palette_linear_vertical(tmp_path, caplog):
     
 def test_image_palette_linear_horizontal(tmp_path, caplog):
     with caplog.at_level(logging.DEBUG):
-        b = cb.ColorBackground(palette=cc.b_cyclic_mybm_20_100_c48, direction=cb.HORIZONTAL)
+        b = cb.ColorBackground(palette=cc.b_cyclic_mybm_20_100_c48, direction=cb.Direction.HORIZONTAL)
         b.get_image().save(join(tmp_path, "cyclic_palette_linear_horizontal.png"))
         assert "Drawing linear horizontal background." in caplog.text
         assert "Flipping background image." not in caplog.text
@@ -123,30 +123,36 @@ def test_image_palette_linear_horizontal(tmp_path, caplog):
 
 def test_image_palette_linear_invalid_direction(caplog):
     with caplog.at_level(logging.CRITICAL):
-        b = cb.ColorBackground(palette=cc.b_cyclic_mybm_20_100_c48, direction=cb.CENTER)
+        b = cb.ColorBackground(palette=cc.b_cyclic_mybm_20_100_c48, direction=cb.Direction.CENTER)
         b.get_image()
-        assert "Invalid direction " + str(cb.CENTER) + " identified" in caplog.text
+        assert "Invalid direction " + str(cb.Direction.CENTER) + " identified" in caplog.text
         
 def test_image_palette_circular_center(tmp_path, caplog):
     with caplog.at_level(logging.DEBUG):
-        b = cb.ColorBackground(palette=cc.b_cyclic_mybm_20_100_c48, direction=cb.CENTER, mode=cb.CIRCULAR)
+        b = cb.ColorBackground(palette=cc.b_cyclic_mybm_20_100_c48, direction=cb.Direction.CENTER, mode=cb.Mode.CIRCULAR)
         b.get_image().save(join(tmp_path, "cyclic_palette_circular_center.png"))
         assert "Drawing circular centered background." in caplog.text
         
 def test_image_palette_circular_horizontal(tmp_path, caplog):
     with caplog.at_level(logging.DEBUG):
-        b = cb.ColorBackground(palette=cc.b_cyclic_mybm_20_100_c48, direction=cb.HORIZONTAL, mode=cb.CIRCULAR)
+        b = cb.ColorBackground(palette=cc.b_cyclic_mybm_20_100_c48, direction=cb.Direction.HORIZONTAL, mode=cb.Mode.CIRCULAR)
         b.get_image().save(join(tmp_path, "cyclic_palette_circular_horizontal.png"))
         assert "Drawing circular horizontal background." in caplog.text
         
 def test_image_palette_circular_vertical(tmp_path, caplog):
     with caplog.at_level(logging.DEBUG):
-        b = cb.ColorBackground(palette=cc.b_cyclic_mybm_20_100_c48, direction=cb.VERTICAL, mode=cb.CIRCULAR)
+        b = cb.ColorBackground(palette=cc.b_cyclic_mybm_20_100_c48, direction=cb.Direction.VERTICAL, mode=cb.Mode.CIRCULAR)
         b.get_image().save(join(tmp_path, "cyclic_palette_circular_vertical.png"))
         assert "Drawing circular vertical background." in caplog.text
  
 def test_image_palette_circular_diagonal(tmp_path, caplog):
     with caplog.at_level(logging.DEBUG):
-        b = cb.ColorBackground(palette=cc.b_cyclic_mybm_20_100_c48, direction=cb.DIAGONAL, mode=cb.CIRCULAR)
+        b = cb.ColorBackground(palette=cc.b_cyclic_mybm_20_100_c48, direction=cb.Direction.DIAGONAL, mode=cb.Mode.CIRCULAR)
         b.get_image().save(join(tmp_path, "cyclic_palette_circular_diagonal.png"))
         assert "Drawing circular diagonal background." in caplog.text
+
+def test_image_palette_circular_invalid_direction(caplog):
+    with caplog.at_level(logging.CRITICAL):
+        b = cb.ColorBackground(palette=cc.b_cyclic_mybm_20_100_c48, direction=77, mode=cb.Mode.CIRCULAR)
+        b.get_image()
+        assert "Invalid direction " + str(77) + " identified" in caplog.text

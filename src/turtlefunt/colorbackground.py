@@ -1,21 +1,29 @@
 """src/turtlefunt/colorbackground.py"""
 
+from enum import Enum
 from loguru import logger
 import math
 from PIL import Image, ImageDraw, ImageFont, ImageOps
-from typing import Union, Iterable, Tuple, Final, Literal
+from typing import Union, Iterable, Tuple, Literal
 
-LINEAR: Final[int] = 2
-CIRCULAR: Final[int] = 3
 
-DIAGONAL: Final[int] = 5
-VERTICAL: Final[int] = 7
-HORIZONTAL: Final[int] = 13
-CENTER: Final[int] = 17
+class Mode(Enum):
+    LINEAR = 2
+    CIRCULAR = 3
 
-KEEP: Final[int] = 19
-MIRROR: Final[int] = 23
-FLIP: Final[int] = 29
+
+class Direction(Enum):
+    DIAGONAL = 5
+    VERTICAL = 7
+    HORIZONTAL = 13
+    CENTER = 17
+
+
+class Transform(Enum):
+    KEEP = 19
+    MIRROR = 23
+    FLIP = 29
+    FLIPMIRROR = FLIP * MIRROR
 
 
 class ColorBackground:
@@ -29,12 +37,14 @@ class ColorBackground:
         None = None,
         palette: Union[Iterable, list, str, Tuple[int, int, int], None] |
         None = None,
-        mode: Literal[LINEAR, CIRCULAR] |
-        None = LINEAR,
-        direction: Literal[DIAGONAL, VERTICAL, HORIZONTAL, CENTER] |
-        None = DIAGONAL,
-        transform: Literal[KEEP, MIRROR, FLIP, MIRROR * FLIP] |
-        None = KEEP,
+        mode: Literal[Mode.LINEAR, Mode.CIRCULAR] |
+        None = Mode.LINEAR,
+        direction: Literal[Direction.DIAGONAL, Direction.VERTICAL,
+                           Direction.HORIZONTAL, Direction.CENTER] |
+        None = Direction.DIAGONAL,
+        transform: Literal[Transform.KEEP, Transform.MIRROR,
+                           Transform.FLIP, Transform.FLIPMIRROR] |
+        None = Transform.KEEP,
         font: str |
         None = "./freefont/FreeMonoBold.ttf",
         font_size: int |
@@ -50,12 +60,13 @@ class ColorBackground:
             width (int): with of background image
             height (int): height of background image
             palette (Iterable, list): Color palette, color name or color tuple
-            mode (LINEAR, CIRCULAR): draw colors in lines or circles on the
-                    background
-            direction (DIAGONAL, VERTICAL, HORIZONTAL, CENTER): main drawing
-                    direction (LINEAR does not support CENTER)
-            transform (KEEP, MIRROR, FLIP, MIRROR * FLIP): transformation
-                    after generation
+            mode (Mode.LINEAR, Mode.CIRCULAR): draw colors in lines or circles
+                    on the background
+            direction (Direction.DIAGONAL, Direction.VERTICAL,
+                    Direction.HORIZONTAL, Direction.CENTER): main drawing
+                    direction (Mode.LINEAR does not support Direction.CENTER)
+            transform (Transform.KEEP, Transform.MIRROR, Transform.FLIP,
+                    Transform.FLIPMIRROR): transformation after generation
             font (str): path to ttf font file for size creation by text
             font_size (int): size of font for test text creation
             size_by_text (str): sample text to size the image by
@@ -134,12 +145,12 @@ class ColorBackground:
     def _create_image_linear(self) -> None:
         """Create images with lines"""
 
-        if self.draw_mode == LINEAR:
-            if self.draw_direction == VERTICAL:
+        if self.draw_mode == Mode.LINEAR:
+            if self.draw_direction == Direction.VERTICAL:
                 self._create_image_linear_vertical()
-            elif self.draw_direction == HORIZONTAL:
+            elif self.draw_direction == Direction.HORIZONTAL:
                 self._create_image_linear_horizontal()
-            elif self.draw_direction == DIAGONAL:
+            elif self.draw_direction == Direction.DIAGONAL:
                 self._create_image_linear_diagonal()
             else:
                 logger.critical("Invalid direction {} identified",
@@ -190,15 +201,18 @@ class ColorBackground:
     def _create_image_circular(self):
         """Create background images using circles"""
 
-        if self.draw_mode == CIRCULAR:
-            if self.draw_direction == CENTER:
+        if self.draw_mode == Mode.CIRCULAR:
+            if self.draw_direction == Direction.CENTER:
                 self._create_image_circular_center()
-            elif self.draw_direction == HORIZONTAL:
+            elif self.draw_direction == Direction.HORIZONTAL:
                 self._create_image_circular_horizontal()
-            elif self.draw_direction == VERTICAL:
+            elif self.draw_direction == Direction.VERTICAL:
                 self._create_image_circular_vertical()
-            elif self.draw_direction == DIAGONAL:
+            elif self.draw_direction == Direction.DIAGONAL:
                 self._create_image_circular_diagonal()
+            else:
+                logger.critical("Invalid direction {} identified",
+                                self.draw_direction)
 
     def _create_image_circular_center(self):
         """Create background image using centered circles"""
@@ -306,10 +320,12 @@ class ColorBackground:
     def _image_transform(self) -> None:
         """Flip or mirror image on request"""
 
-        if self.draw_transform % FLIP == 0:
+        if self.draw_transform == Transform.FLIP or \
+                self.draw_transform == Transform.FLIPMIRROR:
             logger.debug("Flipping background image.")
             self._image = ImageOps.flip(self._image)
-        if self.draw_transform % MIRROR == 0:
+        if self.draw_transform == Transform.MIRROR or \
+                self.draw_transform == Transform.FLIPMIRROR:
             logger.debug("Mirroring background image.")
             self._image = ImageOps.mirror(self._image)
 
