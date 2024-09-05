@@ -49,7 +49,7 @@ class ColorBackground:
         None = "./freefont/FreeMonoBold.ttf",
         font_size: int |
         None = 60,
-        size_by_text: str |
+        text: str |
         None = "REPEAT 999999999 [ \n  RT # * 0.12345678 \n  FD 100000 \n]",
         spacing: Union[int, float] |
         None = 0.1,
@@ -69,7 +69,7 @@ class ColorBackground:
                     Transform.FLIPMIRROR): transformation after generation
             font (str): path to ttf font file for size creation by text
             font_size (int): size of font for test text creation
-            size_by_text (str): sample text to size the image by
+            text (str): sample text
             spacing (int, float): text spacing between lines in fraction of
                     textheight (e.g. 0.1 == 10%)
         """
@@ -82,38 +82,61 @@ class ColorBackground:
 
         self.palette = palette
 
-        self.font = ImageFont.truetype(font, font_size)
-        self.text = size_by_text
+        self.font_size = font_size
+        self.font = ImageFont.truetype(font, self.font_size)
+        self.text = text
         self.spacing = spacing
+        self.line_height = None
 
         self._image = None
+
+    def _get_line_hight_from_text(
+        self,
+        force: bool | None = False,
+    ) -> None:
+        """Determine the line height
+
+        Args:
+            force (bool): force creation, even though line_height is not None
+        """
+        if self.line_height is not None and not force:
+            return
+        
+        image = Image.new("RGBA", (100, 100))
+        draw = ImageDraw.Draw(image)
+        
+        _, _, _, self.line_height = draw.textbbox(
+            (0, 0), self.text.replace("\n", ""), font=self.font
+        )  # height of line in all text
+        self.line_height = int(round(self.line_height * (1 + self.spacing), 0))
 
     def get_size_from_text(
         self,
         force: bool | None = False,
-    ) -> None:
+    ) -> Tuple[int, int]:
         """Generate image dimensions by test text
 
         Args:
             force (bool): force creation, even though dimensions are not None
         """
-        if self.height is not None and self.width is not None and not force:
-            return
+        self._get_line_hight_from_text(force)
 
         image = Image.new("RGBA", (100, 100))
         draw = ImageDraw.Draw(image)
 
-        _, _, _, self.height = draw.textbbox(
-            (0, 0), self.text.replace("\n", ""), font=self.font
-        )  # height of line in all text
-        self.height = int(round(self.height * (1 + self.spacing), 0))
-        self.height = int(self.height * len(self.text.split("\n")))
+        height = int(self.line_height * len(self.text.split("\n")))
 
-        self.width = 1
+        width = 1
         for line in self.text.split("\n"):
             _, _, w, _ = draw.textbbox((0, 0), line, font=self.font)
-            self.width = max(w, self.width)
-
+            width = max(w, width)
+            
+        if not (self.height is not None and self.width is not None and not force):
+            self.width = width
+            self.height = height
+        
+        return (width, height)
+            
     def _get_color(self, fraction: float) -> Tuple[int, int, int]:
         """Get the required color
 
@@ -361,7 +384,7 @@ class ColorBackground:
 
         self._image_transform()
 
-    def get_image(self):
+    def get_image(self) -> Image:
         """Return current background image"""
         self.get_size_from_text()
         self.create_image()

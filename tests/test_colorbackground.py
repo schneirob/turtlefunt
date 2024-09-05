@@ -12,7 +12,7 @@ def test_init_fix_color(caplog):
         assert "Successfully created image with color 'black'" in caplog.text
         
 def test_width_no_text():
-    b = cb.ColorBackground(size_by_text="")
+    b = cb.ColorBackground(text="")
     b.get_size_from_text()
     assert b.width == 1
     
