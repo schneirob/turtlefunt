@@ -88,6 +88,7 @@ class TurtleNT:
         self.image_y_offset = image_y_offset if image_y_offset is not None else int(round(self.image_height / 2, 0))
         self._image = None
         self._image_draw = None
+        self._image_draw_num = 0
         
         self.image_background = image_background
         self.image_linecolor = image_linecolor
@@ -120,7 +121,29 @@ class TurtleNT:
         if type(self.image_linecolor) is str or type(self.image_linecolor) is tuple:
             return self.image_linecolor
         
-        
+        fraction = self._image_draw_num / self._step_num
+        color_num = int(round(len(self.image_linecolor) * fraction, 0))
+        if color_num < 0:
+            color_num = 0
+        elif color_num > len(self.image_linecolor) - 1:
+            color_num = len(self.image_linecolor) - 1
+
+        color = self.image_linecolor[color_num]
+        if type(color) is str and color.startswith("#") and len(color) == 7:
+            color = color.lstrip("#")
+            return tuple(int(color[i: i + 2], 16) for i in (0, 2, 4))
+        elif type(color) is list and len(color) == 3:
+            for index in range(len(color)):
+                color[index] = int(round(color[index] * 255, 0))
+                if color[index] > 255:
+                    color[index] = 255 # there is something wrong, but I cannot figure it out.
+            return tuple(color)
+        else:
+            logger.critical(
+                "Palette returns invalid color code! " +
+                "Returning white as default!"
+            )
+            return (255, 255, 255)
     
     def _angle_cleanup(self) -> None:
         """Clean up _angle to be within 360°"""
@@ -176,7 +199,7 @@ class TurtleNT:
     
     def _draw_line(self, x1:Union[int, float], y1:Union[int, float], x2:Union[int, float], y2:Union[int, float]) -> None:
         """Draw a line"""
-        self._image_draw.line((x1 + self.image_x_offset, y1 + self.image_y_offset, x2 + self.image_x_offset, y2 + self.image_y_offset), fill=self.image_linecolor, width=self.image_linewidth)
+        self._image_draw.line((x1 + self.image_x_offset, y1 + self.image_y_offset, x2 + self.image_x_offset, y2 + self.image_y_offset), fill=self._get_color(), width=self.image_linewidth)
         self._draw_point(x2, y2)
        
     def _draw_point(
@@ -190,7 +213,7 @@ class TurtleNT:
         if width is None:
             width = self.image_linewidth - 2
         if color is None:
-            color = self.image_linecolor
+            color = self._get_color()
             
         radius = int(round((width) / 2, 0))
         x1 = x - radius + self.image_x_offset
@@ -373,18 +396,19 @@ class TurtleNT:
         if autoscale:
             scale = self._autoscale()
         self._scale = scale
-            
+        
+        self._image_draw_num = 0
         self._draw_point(self._xpos_list[0], self._ypos_list[0])
-        for index in range(len(self._xpos_list) - 1):
+        for self._image_draw_num in range(len(self._xpos_list) - 1):
             self._draw_line(
-                self._xpos_list[index] * scale,
-                self._ypos_list[index] * scale,
-                self._xpos_list[index + 1] * scale,
-                self._ypos_list[index + 1] * scale
+                self._xpos_list[self._image_draw_num] * scale,
+                self._ypos_list[self._image_draw_num] * scale,
+                self._xpos_list[self._image_draw_num + 1] * scale,
+                self._ypos_list[self._image_draw_num + 1] * scale
                 )
-            if index % 100000 == 0 and index > 0:
-                steps_per_second = index / (perf_counter() - timer_start)
-                logger.debug("Drawing step {} out of {}, remaining time estimate {}s", index, len(self._xpos_list), float(len(self._xpos_list) - index) / steps_per_second)
+            if self._image_draw_num % 100000 == 0 and self._image_draw_num > 0:
+                steps_per_second = self._image_draw_num / (perf_counter() - timer_start)
+                logger.debug("Drawing step {} out of {}, remaining time estimate {}s", self._image_draw_num, len(self._xpos_list), float(len(self._xpos_list) - self._image_draw_num) / steps_per_second)
         
         if mark_origin:
             self._draw_point(0, 0, 4 * self.image_linewidth, "red")

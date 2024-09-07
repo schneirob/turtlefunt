@@ -1,5 +1,6 @@
 """tests/test_turtlent.py"""
 
+import colorcet as cc
 from decimal import Decimal, getcontext
 import logging
 from PIL import Image
@@ -8,6 +9,7 @@ from random import randrange as random
 
 from turtlefunt.turtlent import decimal_places, TurtleNT, DEFAULT_IMAGE_HEIGHT, DEFAULT_IMAGE_WIDTH
 from turtlefunt.turtlefun_quotientlist import TURTLEFUN_QUOTIENT_LIST
+from turtlefunt.palette import TurtlePalette
 from .turtle_originreturnsamples import TURTLE_ORIGIN_RETURN_SAMPLES
 from .turtlefun_lines_manual import THETA_LINES
 
@@ -221,3 +223,23 @@ def test_use_manual_filename(tmp_path):
     t = TurtleNT('1', path=tmp_path)
     t.euler_spiral()
     t.save_image("test.png")
+    
+def test_using_color_b_palette(tmp_path):
+    t = TurtleNT('1', path=tmp_path, image_linecolor=cc.b_cyclic_bgrmb_35_70_c75)
+    t.euler_spiral()
+    t.save_image()
+    
+def test_using_color_palette(tmp_path):
+    t = TurtleNT('1', path=tmp_path, image_linecolor=cc.cyclic_bgrmb_35_70_c75)
+    t.euler_spiral()
+    t.save_image()
+    
+def test_using_invalid_color_palette(tmp_path):
+    t = TurtleNT('1', path=tmp_path, image_linecolor=["123", "234"])
+    t.euler_spiral()
+    t.save_image()
+    
+def test_turtle_palette(tmp_path):
+    t = TurtleNT('1', path=tmp_path, image_linecolor=TurtlePalette(cc.b_cyclic_bgrmb_35_70_c75).get_double_second()[0])
+    t.euler_spiral()
+    t.save_image()
