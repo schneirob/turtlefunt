@@ -368,6 +368,12 @@ class TurtleNT:
         
         return os.path.join(self.get_path(), filename)
         
+    def _check_pos_list_plausibility(self) -> None:
+        """Check if lenght of xpos_list and ypos_list are identical"""
+        if len(self._xpos_list) != len(self._ypos_list):
+            logger.critical("x and y lists are not of equal length!")
+            exit(1)
+            
     def get_image(
         self,
         autoscale:bool | None = True,
@@ -375,7 +381,7 @@ class TurtleNT:
         mark_origin:bool | None = False,
     ) -> Image:
         """Create image from current position list.
-        Returns last image, if image exists, except farce_redraw == True
+        Returns last image, if image exists, except force_redraw == True
         
         Args:
             autoscale (bool): Scale the turtle positions to fit into image size
@@ -386,9 +392,7 @@ class TurtleNT:
             return self._image
         
         logger.debug("Drawing new {}x{} image.", self.image_width, self.image_height)
-        if len(self._xpos_list) != len(self._ypos_list):
-            logger.critical("x and y lists are not of equal length!")
-            exit(1)
+        self._check_pos_list_plausibility()
         
         timer_start = perf_counter()
         self._clear_image()
@@ -474,6 +478,19 @@ class TurtleNT:
                 self.origin_return_estimation()
                 
         return self._origin_return_dominant_angles
+        
+    def quadrant_usage(self) -> Tuple[int, int, int ,int]:
+        """Count positions within the four quadrants reached by the turtle
+        
+        Return:
+            (Top Right, Bottom Right, Bottom Left, Top Left):
+                Tuple with number of positions in the four quadrants
+        """
+        
+        self._check_pos_list_plausibility()
+        
+        #TODO implement counting of positions in quadrants
+        
         
     def origin_return_estimation(self) -> List[Decimal]:
         """Estimate the origin return steps of the projects theta value"""
