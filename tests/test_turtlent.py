@@ -243,3 +243,29 @@ def test_turtle_palette(tmp_path):
     t = TurtleNT('1', path=tmp_path, image_linecolor=TurtlePalette(cc.b_cyclic_bgrmb_35_70_c75).get_double_second()[0])
     t.euler_spiral()
     t.save_image()
+
+def test_quadrant_usage():
+    t = TurtleNT('1')
+    t.euler_spiral()
+    (tr, br, bl, tl) = t.quadrant_usage()
+    assert tr == 1
+    assert bl == 1
+    assert tl == 361
+    assert br == 358
+
+def test_quadrant_usage_mirrored():
+    t = TurtleNT('359')
+    t.euler_spiral()
+    (tr, br, bl, tl) = t.quadrant_usage()
+    assert tl == 4
+    assert br == 1
+    assert tr == 358
+    assert bl == 358
+
+def test_minus_one():
+    t = TurtleNT('-1')
+    assert t.get_theta() == 359
+
+def test_threehundretsixtyone():
+    t = TurtleNT('361')
+    assert t.get_theta() == 1

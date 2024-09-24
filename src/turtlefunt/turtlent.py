@@ -434,6 +434,9 @@ class TurtleNT:
     def set_theta(self, theta:Union[int, float, str, Decimal]) -> None:
         """Set a new theta value"""
         self._theta = Decimal(str(theta))
+        while self._theta < 0:
+            self._theta += Decimal('360')
+        self._theta = self._theta % Decimal('360')
         
     def get_xmax(self) -> Decimal:
         """Maximum xposition reached"""
@@ -488,9 +491,27 @@ class TurtleNT:
         """
         
         self._check_pos_list_plausibility()
-        
-        #TODO implement counting of positions in quadrants
-        
+
+        topright = bottomright = bottomleft = topleft = 0
+
+        for index in range(len(self._xpos_list)):
+            if self._xpos_list[index] > 0:
+                # right
+                if self._ypos_list[index] < 0:
+                    # top
+                    topright += 1
+                else:
+                    #bottom
+                    bottomright += 1
+            else:
+                # left
+                if self._ypos_list[index] < 0:
+                    # top
+                    topleft += 1
+                else:
+                    #bottom
+                    bottomleft += 1
+        return (topright, bottomright, bottomleft, topleft)
         
     def origin_return_estimation(self) -> List[Decimal]:
         """Estimate the origin return steps of the projects theta value"""
